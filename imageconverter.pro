@@ -39,3 +39,7 @@ FORMS += \
 
 RESOURCES += \
     rsc.qrc
+
+TRANSLATIONS = imageconverter_zh_CN.ts
+
+CODECFORSRC = UTF-8
