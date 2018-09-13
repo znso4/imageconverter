@@ -18,17 +18,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::selectFiles(){
     addFile(QFileDialog::getOpenFileNames(
-                this,tr("选择"), ".", tr("Picture (*.jpg;*.bmp;*.png)")));
+                this,tr("选择"), ".", tr("Picture") + " (*.jpg;*.bmp;*.png)"));
 }
 
-void MainWindow::addFile(QStringList lst){
-    QStringList nlst;
-    for(auto iter : lst){
-        if(filePaths.contains(iter)){continue;}
-        nlst += iter.section("/", -1, -1).section("\\", -1, -1);
+void MainWindow::flushFilenamesInModel(){
+    QStringList lst;
+    for(auto iter:filePaths){
+        lst.append(iter.section("/", -1, -1));
     }
-    filePaths += lst;
-    filenamesModel->setStringList(filenamesModel->stringList() + nlst);
+    filenamesModel->setStringList(lst);
+}
+
+void MainWindow::addFile(const QStringList& lst){
+    for(auto iter:lst){
+        if(!filePaths.contains(iter)){
+            filePaths.append(iter);
+        }
+    }
+    flushFilenamesInModel();
     qDebug()<<filePaths<<endl;
 }
 
@@ -43,16 +50,25 @@ void MainWindow::removeFiles(){
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event){
-    auto url = event->mimeData()->data(QString("text/uri-list"));
-    qDebug()<<url<<endl;
-    if(event->source() != this && event->mimeData()->hasUrls()){
-//        url.startsWith("file:///");
-//        url.endsWith(".jpg");
-    }else{
-        event->ignore();
+    if(event->source() == this || !event->mimeData()->hasUrls()){event->ignore();}
+    else{
+        QByteArray url = event->mimeData()->data(QString("text/uri-list"));
+        QStringList paths = QUrl::fromPercentEncoding(url).split(newline, QString::SplitBehavior::SkipEmptyParts);
+        for(auto str:paths){
+            if(str.startsWith("file:///") &&
+                    (str.endsWith(".jpg",Qt::CaseInsensitive) || str.endsWith(".png",Qt::CaseInsensitive) || str.endsWith(".gif",Qt::CaseInsensitive))){
+                event->accept();
+            }
+        }
     }
 }
 
 void MainWindow::dropEvent(QDropEvent *event){
-
+    qDebug()<<"in dropEvent()"<<endl;
+    QStringList paths = QUrl::fromPercentEncoding(event->mimeData()->data(QString("text/uri-list"))).split(newline, QString::SplitBehavior::SkipEmptyParts);
+    QStringList fn;
+    for(auto str:paths){
+        fn.append(str.remove(0, 8));
+    }
+    addFile(fn);
 }

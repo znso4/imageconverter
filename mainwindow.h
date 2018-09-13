@@ -1,5 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+
+#include <opencv2/opencv.hpp>
+
+#include <QTextCodec>
 #include <QFileDialog>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -30,9 +34,17 @@ private:
     Ui::MainWindow *ui;
     QStringListModel *filenamesModel;
     QStringList filePaths;
-
-    void addFile(QStringList);
-
+#ifdef Q_OS_WIN
+    QString newline = "\r\n";
+#endif
+#ifdef Q_OS_LINUX
+    QString newline = "\n";
+#endif
+#ifdef Q_OS_UNIX
+    QString newline = "\r";
+#endif
+    void addFile(const QStringList&);
+    void flushFilenamesInModel();
 
 };
 
