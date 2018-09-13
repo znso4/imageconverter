@@ -1,2 +1,2 @@
 ## imageconverter
-convert images in different formats
+convert images into different formats, with customizable quality
